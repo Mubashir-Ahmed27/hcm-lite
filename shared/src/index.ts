@@ -1,0 +1,22 @@
+import { z } from 'zod';
+
+export const roles = ['ADMIN', 'HR', 'EMPLOYEE'] as const;
+export type Role = (typeof roles)[number];
+export const roleSchema = z.enum(roles);
+export const attendanceStatuses = ['present', 'late', 'half_day', 'absent', 'on_leave', 'missing_checkout'] as const;
+export type AttendanceStatus = (typeof attendanceStatuses)[number];
+export const leaveTypes = ['annual', 'sick', 'casual', 'unpaid'] as const;
+export type LeaveType = (typeof leaveTypes)[number];
+export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');
+export const setupSchema = z.object({ companyName: z.string().trim().min(2).max(100), name: z.string().trim().min(2).max(100), email: z.string().email().transform(v => v.toLowerCase()), password: z.string().min(10).max(128) }).strict();
+export const loginSchema = z.object({ email: z.string().email().transform(v => v.toLowerCase()), password: z.string().min(1).max(128) }).strict();
+export const passwordSchema = z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(10).max(128) }).strict();
+export const employeeSchema = z.object({ name: z.string().trim().min(2), email: z.string().email().transform(v => v.toLowerCase()), role: z.enum(['HR','EMPLOYEE']).default('EMPLOYEE'), departmentId: objectIdSchema.optional(), phone: z.string().max(30).optional(), address: z.string().max(300).optional(), joinDate: z.string().date(), basicSalary: z.number().min(0).optional() }).strict();
+export const settingsSchema = z.object({ timezone: z.string().default('Asia/Karachi'), officeStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), graceMinutes: z.number().int().min(0).max(120), halfDayHours: z.number().min(1).max(12), weekendDays: z.array(z.number().int().min(1).max(7)).min(1), officeLatitude: z.number().optional(), officeLongitude: z.number().optional(), radiusMeters: z.number().int().min(1).max(5000) }).strict();
+export const checkInSchema = z.object({ latitude: z.number().optional(), longitude: z.number().optional() }).strict();
+export const correctionSchema = z.object({ date: z.string().date(), requestedCheckIn: z.string().datetime().optional(), requestedCheckOut: z.string().datetime().optional(), reason: z.string().trim().min(5).max(500) }).strict();
+export const leaveSchema = z.object({ type: z.enum(leaveTypes), startDate: z.string().date(), endDate: z.string().date(), reason: z.string().trim().min(3).max(500) }).strict();
+export const decisionSchema = z.object({ comment: z.string().trim().max(500).default('') }).strict();
+export const payrollRunSchema = z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) }).strict();
+export type Actor = { userId: string; role: Role; employeeId?: string };
+export type ApiError = { error: { code: string; message: string; details?: unknown } };
